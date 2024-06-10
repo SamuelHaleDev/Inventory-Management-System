@@ -2,43 +2,25 @@
 
 // Item Class
 class Item {
-    private string name;
-    private int quantity;
-    private float price;
+    public string Name { get; set; }
+    public int Quantity { get; set; }
+    public decimal Price { get; set; }
 
-    public Item(string n, int q, float p) {
-      name = n;
-      quantity = q;
-      price = p;
+    public Item(string name, int quantity, decimal price) {
+      Name = name;
+      Quantity = quantity;
+      Price = price;
     }
 
-    public string GetName() {
-      return name;
-    }
-
-    public int GetQuantity() {
-      return quantity;
-    }
-
-    public float GetPrice() {
-      return price;
-    }
-
-    public void SetName(string n) {
-      name = n;
-    }
-
-    public void SetQuantity(int q) {
-      quantity = q;
-    }
-
-    public void SetPrice(float p) {
-      price = p;
+    public override string ToString()  {
+        return $"Name: {Name}, Quantity {Quantity}, Price: {Price:C}";
     }
 }
 
 // Inventory Class
+class Inventory {
 
+}
 
 class Program {
   static void Main(string[] args) {
