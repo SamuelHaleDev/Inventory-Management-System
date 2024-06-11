@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Xml.XPath;
 using Microsoft.VisualBasic;
 
 namespace Inventory_Management_System;
@@ -77,16 +78,19 @@ class Inventory {
   }
 
   public Item FindItem(string name, bool clone) {
-    Item result = new Item();
-    result = Items.Find(item => item.Name == name);
+    Item foundItem;
+    Item result;
+    foundItem = Items.Find(item => item.Name == name);
 
-    if (result == null) {
+    if (foundItem == null) {
       Console.WriteLine("I| Item could not be found!");
     } else {
       Console.WriteLine("I| Item found!");
     }
     if (clone) {
-      result = new Item(result.Name, result.Quantity, result.Price);
+      result = new Item(foundItem.Name, foundItem.Quantity, foundItem.Price);
+    } else {
+      result = foundItem;
     }
 
     // return null if result is null, return a clone if its not null
@@ -112,7 +116,6 @@ class Program {
       // Perform operation
       switch (input) {
           case 'A':
-            // ToDo: Get Name, Quantity, Price from user and call function Add
             AddItem();
             break;
           case 'B':
@@ -288,7 +291,7 @@ class Program {
 
     // If it exists display it
     if (name != null) {
-      Console.WriteLine($"C| Item Found! {findItem.ToString}");
+      Console.WriteLine($"C| Item Found! {findItem.ToString()}");
     } else {
       Console.WriteLine($"C| Item: {name} not found!");
     }
