@@ -1,12 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml.XPath;
-using Microsoft.VisualBasic;
-
-namespace Inventory_Management_System;
-
-
-class Item 
+﻿class Item 
 {
   public string Name { get; set; }
   public int Quantity { get; set; }
@@ -37,9 +29,7 @@ class Inventory
 
   public void AddItem(Item item) 
   {
-    bool itemExists = DoesItemExist(item);
-
-    if (itemExists) 
+    if (ItemExists(item)) 
     {
       Console.WriteLine($"I| Item exists!");
       return;
@@ -51,9 +41,7 @@ class Inventory
 
   public void RemoveItem(Item item) 
   {
-    bool itemExists = DoesItemExist(item);
-
-    if (!itemExists) 
+    if (!ItemExists(item)) 
     {
       Console.WriteLine($"I| Item does not exist!");
       return;
@@ -64,9 +52,7 @@ class Inventory
 
   public void ModifyItem(Item originalItem, Item modifiedItem) 
   {
-    bool itemExists = DoesItemExist(originalItem);
-
-    if (!itemExists) 
+    if (!ItemExists(originalItem)) 
     {
       Console.WriteLine($"I| Item does not exist!");
     }
@@ -77,7 +63,6 @@ class Inventory
   public void PrintInventory() 
   {
     Console.WriteLine("####################### Printing Inventory #######################");
-
     for (int i = 0; i < Items.Count(); i++) 
     {
       Console.WriteLine($"I| Item {i+1}: {Items[i].ToString()}");
@@ -91,12 +76,13 @@ class Inventory
     if (foundItem is null) 
     {
       Console.WriteLine("I| Item could not be found!");
+      return null;
     } 
 
     return clone ? new Item(foundItem.Name, foundItem.Quantity, foundItem.Price) : foundItem;
   }
 
-  public bool DoesItemExist(Item item) 
+  public bool ItemExists(Item item) 
   {
     return !(Items.Find(tempItem => tempItem.Name == item.Name) == new Item());
   }
@@ -105,11 +91,21 @@ class Inventory
 class Program 
 {
   public static Inventory inventory = new Inventory();
+  public const string UPDATE_QUANTITY = "1";
+  public const string UPDATE_PRICE = "2";
+  public const string UPDATE_BOTH = "3";
+  public const string QUIT = "4";
+  public const char ADD = 'A';
+  public const char DELETE = 'B';
+  public const char VIEW = 'C';
+  public const char UPDATE = 'D';
+  public const char SEARCH = 'E';
+  public const char EXIT = 'X';
 
   static void Main(string[] args) 
   {
+    char[] USER_INPUT_OPTIONS = {ADD, DELETE, VIEW, UPDATE, SEARCH, EXIT};
     char input = 'A';
-    char[] USER_INPUT_OPTIONS = {'A', 'B', 'C', 'D', 'E', 'X'};
  
     while (Array.Exists(USER_INPUT_OPTIONS, OPTION => OPTION == input)) 
     {
@@ -118,7 +114,7 @@ class Program
       input = Char.ToUpper((char)Console.Read());
       var newLineCharacter = Console.ReadLine();
 
-      if (input == 'X') break;
+      if (input == EXIT) break;
 
       RouteUserInput(input);
     }
@@ -141,19 +137,19 @@ class Program
   {
     switch (input) 
     {
-        case 'A':
+        case ADD:
           AddItem();
           break;
-        case 'B':
+        case DELETE:
           DeleteItem();
           break;
-        case 'C':
+        case VIEW:
           inventory.PrintInventory();
           break;
-        case 'D':
+        case UPDATE:
           UpdateItem();
           break;
-        case 'E':
+        case SEARCH:
           SearchItem();
           break;
     }
@@ -161,13 +157,12 @@ class Program
 
   public static void AddItem() 
   {
-    string input = "";
-
     while (true) 
     {
       const int NUMBER_OF_ATTRIBUTES = 3;
+
       Console.Write("C| Enter new item details (name, quantity, price): ");
-      input = Console.ReadLine();
+      var input = Console.ReadLine();
       var details = input.Split(',');
 
       if (details.Length != NUMBER_OF_ATTRIBUTES) 
@@ -194,24 +189,20 @@ class Program
   {
     Console.WriteLine("C| Search for Item: ");
     string name = Console.ReadLine();
+    Item item = inventory.FindItem(name, false);
 
-    Item findItem = inventory.FindItem(name, false);
-
-    inventory.RemoveItem(findItem);
+    inventory.RemoveItem(item);
   }
   
   public static void UpdateItem() 
   {
-    string name;
-    Item item = new Item();
-  
     while (true) 
     {
       inventory.PrintInventory();
-      Console.Write("C| Enter the name of the item you would like to modify: ");
-      name = Console.ReadLine();
 
-      item = inventory.FindItem(name, true);
+      Console.Write("C| Enter the name of the item you would like to modify: ");
+      string name = Console.ReadLine();
+      Item item = inventory.FindItem(name, true);
 
       if (item is null) 
       {
@@ -219,20 +210,16 @@ class Program
         continue;
       }
 
-      break;
-    }
-
-    while (true) 
-    {
       DisplayUpdateItemMenu(item);
+
       Console.Write("Enter your choice:");
       string choice = Console.ReadLine();
 
-      if (choice == "4") break;
+      if (choice == QUIT) break;
 
-      if (choice != "1" || choice != "2" || choice != "3") continue;
+      if (choice != UPDATE_QUANTITY || choice != UPDATE_PRICE || choice != UPDATE_BOTH) continue;
 
-      RouteUserInputForUpdateOptions(choice, item, name);
+      HandleUpdateItemChoice(choice, item, name);
     }
   }
 
@@ -240,16 +227,15 @@ class Program
   {
     Console.WriteLine("Search for Item: ");
     string name = Console.ReadLine();
+    Item item = inventory.FindItem(name, true);
 
-    Item findItem = inventory.FindItem(name, true);
-
-    if (findItem is null) 
+    if (item is null) 
     {
       Console.WriteLine($"C| Item: {name} not found!");
       return;
     }
 
-    Console.WriteLine($"C| Item Found! {findItem.ToString()}");
+    Console.WriteLine($"C| Item Found! {item.ToString()}");
   }
 
   public static void DisplayUpdateItemMenu(Item item) 
@@ -262,15 +248,12 @@ class Program
     Console.WriteLine("4. Exit");
   }
 
-  public static void RouteUserInputForUpdateOptions(string choice, Item item, string name) 
+  public static void HandleUpdateItemChoice(string choice, Item item, string name) 
   {
-    string quantityStr;
-    string priceStr;
-
-    if (choice == "1" || choice == "3") 
+    if (choice == UPDATE_QUANTITY || choice == UPDATE_BOTH) 
     {
       Console.Write("Enter new quantity: ");
-      quantityStr = Console.ReadLine();
+      string quantityStr = Console.ReadLine();
 
       if (!int.TryParse(quantityStr, out int quantity)) 
       {
@@ -283,10 +266,10 @@ class Program
 
       Console.WriteLine("C| Quantity updated successfully!");
     } 
-    if (choice == "2" || choice == "3") 
+    if (choice == UPDATE_PRICE || choice == UPDATE_BOTH) 
     {
       Console.Write("Enter new price: ");
-      priceStr = Console.ReadLine();
+      string priceStr = Console.ReadLine();
 
       if (!decimal.TryParse(priceStr, out decimal price)) 
       {
