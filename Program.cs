@@ -86,24 +86,18 @@ class Inventory
 
   public Item FindItem(string name, bool clone) 
   {
-    Item foundItem;
+    Item foundItem = Items.Find(item => item.Name == name);
 
-    // Grab item from name
-    foundItem = Items.Find(item => item.Name == name);
-
-    // Make sure that item is found/ not null
     if (foundItem is null) 
     {
       Console.WriteLine("I| Item could not be found!");
     } 
 
-    // For certain functions we don't want modification to apply globally so return a clone
     return clone ? new Item(foundItem.Name, foundItem.Quantity, foundItem.Price) : foundItem;
   }
 
   public bool DoesItemExist(Item item) 
   {
-    // If item is a new Item this means it does not exist so return the opposite of that
     return !(Items.Find(tempItem => tempItem.Name == item.Name) == new Item());
   }
 }
@@ -121,7 +115,6 @@ class Program
     {
       DisplayMenu();
 
-      // Get and standardize input from user, remove new line character from buffer
       input = Char.ToUpper((char)Console.Read());
       var newLineCharacter = Console.ReadLine();
 
@@ -146,7 +139,6 @@ class Program
 
   public static void RouteUserInput(char input) 
   {
-    // Perform operation
     switch (input) 
     {
         case 'A':
@@ -173,24 +165,21 @@ class Program
 
     while (true) 
     {
-      // Get item details from user
+      const int NUMBER_OF_ATTRIBUTES = 3;
       Console.Write("C| Enter new item details (name, quantity, price): ");
       input = Console.ReadLine();
       var details = input.Split(',');
 
-      // Check that user formatted correctly
-      if (details.Length != 3) 
+      if (details.Length != NUMBER_OF_ATTRIBUTES) 
       {
         Console.WriteLine("C| Invalid input. Please enter the details in the format: name, email, age");
         continue;
       }
 
-      // Extract details
       string name = details[0].Trim();
       string quantityStr = details[1].Trim();
       string priceStr = details[2].Trim();
 
-      // Check that user entered in numeric values correctly
       if (!int.TryParse(quantityStr, out int quantity) || !decimal.TryParse(priceStr, out decimal price)) 
       {
         Console.WriteLine("C| Invalid quantity or price. Please enter a valid number for quantity and price.");
@@ -203,72 +192,57 @@ class Program
 
   public static void DeleteItem() 
   {
-    // Get name of item to search for
     Console.WriteLine("C| Search for Item: ");
     string name = Console.ReadLine();
 
-    // Find item
     Item findItem = inventory.FindItem(name, false);
 
-    // Delete item
     inventory.RemoveItem(findItem);
   }
   
   public static void UpdateItem() 
   {
     string name;
-    bool found = false;
     Item item = new Item();
   
-    // Find item user wants to update
     while (true) 
     {
       inventory.PrintInventory();
       Console.Write("C| Enter the name of the item you would like to modify: ");
       name = Console.ReadLine();
 
-      // Search for item
       item = inventory.FindItem(name, true);
 
-      // Check if user entered a valid item name
       if (item is null) 
       {
         Console.WriteLine("Please try re-entering item name or searching for an item that exists.");
         continue;
       }
 
-      // Item is valid break loop
       break;
     }
 
-    // Figure out what user wants to update and route the choice
     while (true) 
     {
       DisplayUpdateItemMenu(item);
       Console.Write("Enter your choice:");
       string choice = Console.ReadLine();
 
-      // User wants to exit so break
       if (choice == "4") break;
 
-      // Validate user entered correct option before routing
       if (choice != "1" || choice != "2" || choice != "3") continue;
 
-      // Handle user input choice
       RouteUserInputForUpdateOptions(choice, item, name);
     }
   }
 
   public static void SearchItem() 
   {
-    // Get name of item to search for
     Console.WriteLine("Search for Item: ");
     string name = Console.ReadLine();
 
-    // Find item
     Item findItem = inventory.FindItem(name, true);
 
-    // Check if item exists
     if (findItem is null) 
     {
       Console.WriteLine($"C| Item: {name} not found!");
@@ -295,18 +269,15 @@ class Program
 
     if (choice == "1" || choice == "3") 
     {
-      // Have user input a new quantity
       Console.Write("Enter new quantity: ");
       quantityStr = Console.ReadLine();
 
-      // Check if the user input was entered in a correct numeric format
       if (!int.TryParse(quantityStr, out int quantity)) 
       {
         Console.WriteLine("Invalid quantity. Please enter a valid number.");
         return;
       }
 
-      // Update item
       item.Quantity = quantity;
       inventory.ModifyItem(inventory.FindItem(name, false), item);
 
@@ -314,17 +285,14 @@ class Program
     } 
     if (choice == "2" || choice == "3") 
     {
-      // Have user input a new price
       Console.Write("Enter new price: ");
       priceStr = Console.ReadLine();
 
-      // Check if the user input was entered in a correct numeric format
       if (!decimal.TryParse(priceStr, out decimal price)) 
       {
         Console.WriteLine("Invalid price. Please enter a valid number.");
       }
 
-      // Update item
       item.Price = price;
       inventory.ModifyItem(inventory.FindItem(name, false), item);
 
