@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Xml.XPath;
 using Microsoft.VisualBasic;
 
 namespace Inventory_Management_System;
@@ -77,16 +78,19 @@ class Inventory {
   }
 
   public Item FindItem(string name, bool clone) {
-    Item result = new Item();
-    result = Items.Find(item => item.Name == name);
+    Item foundItem;
+    Item result;
+    foundItem = Items.Find(item => item.Name == name);
 
-    if (result == null) {
+    if (foundItem == null) {
       Console.WriteLine("I| Item could not be found!");
     } else {
       Console.WriteLine("I| Item found!");
     }
     if (clone) {
-      result = new Item(result.Name, result.Quantity, result.Price);
+      result = new Item(foundItem.Name, foundItem.Quantity, foundItem.Price);
+    } else {
+      result = foundItem;
     }
 
     // return null if result is null, return a clone if its not null
@@ -104,13 +108,14 @@ class Program {
     while (Array.Exists(inputs, element => element == input)) {
       // Show user options and get input
       Menu();
-      ClearInputStream();
       input = Char.ToUpper((char)Console.Read());
+      var newLineCharacter = Console.ReadLine();
+
+      if (input == 'X') break;
 
       // Perform operation
       switch (input) {
           case 'A':
-            // ToDo: Get Name, Quantity, Price from user and call function Add
             AddItem();
             break;
           case 'B':
@@ -146,7 +151,6 @@ class Program {
     while (true) {
       // Get item details
       Console.Write("C| Enter new item details (name, quantity, price): ");
-      ClearInputStream();
       input = Console.ReadLine();
       var details = input.Split(',');
 
@@ -170,7 +174,6 @@ class Program {
   public static void DeleteItem() {
     // Get name of item to search for
     Console.WriteLine("C| Search for Item: ");
-    ClearInputStream();
     string name = Console.ReadLine();
 
     // Find item
@@ -189,7 +192,6 @@ class Program {
     inventory.PrintInventory();
     while (true) {
       Console.Write("C| Enter the name of the item you would like to modify: ");
-      ClearInputStream();
       name = Console.ReadLine();
 
       // Search for item
@@ -212,7 +214,6 @@ class Program {
       Console.WriteLine("3. Both");
       Console.WriteLine("4. Exit");
       Console.Write("Enter your choice:");
-      ClearInputStream();
       string choice = Console.ReadLine();
 
       // User wants to exit so break
@@ -225,7 +226,6 @@ class Program {
         case "1":
           // Get quantity
           Console.Write("Enter new quantity: ");
-          ClearInputStream();
           quantityStr = Console.ReadLine();
 
           // If it converts update Item, otherwise alert user
@@ -241,7 +241,6 @@ class Program {
         case "2":
           // Get price
           Console.Write("Enter new price: ");
-          ClearInputStream();
           priceStr = Console.ReadLine();
 
           // If it converts update Item, otherwise alert user
@@ -257,11 +256,9 @@ class Program {
         case "3":
           // Get quantity and price from user
           Console.Write("Enter new quantity: ");
-          ClearInputStream();
           quantityStr = Console.ReadLine();
 
           Console.Write("Enter new price: ");
-          ClearInputStream();
           priceStr = Console.ReadLine();
 
           // If the values convert update the item, otherwise alert user
@@ -287,7 +284,6 @@ class Program {
   public static void SearchItem() {
     // Get name of item to search for
     Console.WriteLine("Search for Item: ");
-    ClearInputStream();
     string name = Console.ReadLine();
 
     // Find item
@@ -295,15 +291,9 @@ class Program {
 
     // If it exists display it
     if (name != null) {
-      Console.WriteLine($"C| Item Found! {findItem.ToString}");
+      Console.WriteLine($"C| Item Found! {findItem.ToString()}");
     } else {
       Console.WriteLine($"C| Item: {name} not found!");
-    }
-  }
-
-  public static void ClearInputStream() {
-    while (Console.In.Peek() != -1) {
-      Console.Read();
     }
   }
 }
