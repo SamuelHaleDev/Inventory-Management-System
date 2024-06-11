@@ -107,6 +107,8 @@ class Program {
       input = Char.ToUpper((char)Console.Read());
       var newLineCharacter = Console.ReadLine();
 
+      if (input == 'X') break;
+
       // Perform operation
       switch (input) {
           case 'A':
