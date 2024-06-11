@@ -1,4 +1,8 @@
-﻿class Item 
+﻿using System.Net;
+using System.Security.Cryptography;
+using System.Xml.Serialization;
+
+class Item 
 {
   public string Name { get; set; }
   public int Quantity { get; set; }
@@ -71,9 +75,9 @@ class Inventory
     }
   }
 
-  public Item FindItem(string name, bool clone) 
+  public Item? FindItem(string name, bool clone) 
   {
-    Item item = Items.Find(item => item.Name == name);
+    Item? item = Items.FirstOrDefault(item => item.Name == name);
 
     if (item is null) 
     {
@@ -87,7 +91,7 @@ class Inventory
 
   public bool ItemExists(Item item) 
   {
-    return !(Items.Find(tempItem => tempItem.Name == item.Name) == new Item());
+    return !(Items.Find(tempItem => tempItem.Name == item.Name) is null);
   }
 }
 
@@ -164,7 +168,7 @@ class Program
     {
       const int NUMBER_OF_ATTRIBUTES = 3;
 
-      string input = Input("Enter new item details (name, quantity, price): ");
+      string? input = Input("Enter new item details (name, quantity, price): ");
 
       var details = input.Split(',');
 
@@ -185,14 +189,21 @@ class Program
       }
 
       inventory.AddItem(new Item(name, quantity, price));
+      break;
     }
   }
 
   public static void DeleteItem() 
   {
-    string name = Input("Search for Item: ");
+    string? name = Input("Search for Item: ");
 
-    Item item = inventory.FindItem(name, false);
+    Item? item = inventory.FindItem(name, false);
+
+    if (item is null) 
+    {
+      Console.WriteLine($"Item not found! {name}");
+      return;
+    }
 
     inventory.RemoveItem(item);
   }
@@ -202,8 +213,11 @@ class Program
     while (true) 
     {
       inventory.PrintInventory();
-      string name = Input("Enter the name of the item you would like to modify: ");
-      Item item = inventory.FindItem(name, true);
+      string? name = Input("Enter the name of the item you would like to modify or 4 to Quit: ");
+
+      if (name == QUIT) break;
+
+      Item? item = inventory.FindItem(name, true);
 
       if (item is null) 
       {
@@ -213,11 +227,15 @@ class Program
 
       DisplayUpdateItemMenu(item);
 
-      string choice = Input("Enter your choice: ");
+      string? choice = Input("Enter your choice: ");
 
       if (choice == QUIT) break;
 
-      if (choice != UPDATE_QUANTITY || choice != UPDATE_PRICE || choice != UPDATE_BOTH) continue;
+      if (choice != UPDATE_QUANTITY && choice != UPDATE_PRICE && choice != UPDATE_BOTH) 
+      {
+        Console.WriteLine("Invalid choice please try again!");
+        continue;
+      }
 
       HandleUpdateItemChoice(choice, item, name);
     }
@@ -225,9 +243,9 @@ class Program
 
   public static void SearchItem() 
   {
-    string name = Input("Search for Item: ");
+    string? name = Input("Search for Item: ");
 
-    Item item = inventory.FindItem(name, true);
+    Item? item = inventory.FindItem(name, true);
 
     if (item is null) 
     {
@@ -252,7 +270,7 @@ class Program
   {
     if (choice == UPDATE_QUANTITY || choice == UPDATE_BOTH) 
     {
-      string quantityStr = Input("Enter new quantity: ");
+      string? quantityStr = Input("Enter new quantity: ");
 
       if (!int.TryParse(quantityStr, out int quantity)) 
       {
@@ -261,13 +279,13 @@ class Program
       }
 
       item.Quantity = quantity;
-      inventory.ModifyItem(inventory.FindItem(name, false), item);
+      inventory.ModifyItem(inventory.FindItem(name, false)!, item);
 
       Console.WriteLine("C| Quantity updated successfully!");
     } 
     if (choice == UPDATE_PRICE || choice == UPDATE_BOTH) 
     {
-      string priceStr = Input("Enter new price: ");
+      string? priceStr = Input("Enter new price: ");
 
       if (!decimal.TryParse(priceStr, out decimal price)) 
       {
@@ -275,7 +293,7 @@ class Program
       }
 
       item.Price = price;
-      inventory.ModifyItem(inventory.FindItem(name, false), item);
+      inventory.ModifyItem(inventory.FindItem(name, false)!, item);
 
       Console.WriteLine("C| Price updated successfully!");
     }
@@ -284,6 +302,13 @@ class Program
   public static string Input(string message) 
   {
     Console.Write($"C| {message}");
-    return Console.ReadLine();
+    string? input = Console.ReadLine();
+
+    if (input is null)
+    {
+      throw new Exception("Null Input!");
+    }
+
+    return input;
   }
 }
